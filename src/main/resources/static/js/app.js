@@ -89,7 +89,7 @@ if ($('joinForm')) {
         <strong>${esc(t.tokenNumber)}</strong>
         <p>Name: ${esc(t.customerName)}</p>
         <p>Status: <span class="status waiting">WAITING</span></p>
-        <a href="/track?token=${encodeURIComponent(t.tokenNumber)}">Track this token →</a>`;
+        <a href="/track.html?token=${encodeURIComponent(t.tokenNumber)}">Track this token →</a>`;
             $('joinForm').reset();
             notify('Token generated successfully');
         } catch (e) {
@@ -101,4 +101,26 @@ if ($('joinForm')) {
 if ($('trackForm')) {
     const q = new URLSearchParams(location.search).get('token');
     if (q) $('token').value = q;
+
+    $('trackForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+            const t = await request('/api/tickets/' + encodeURIComponent($('token').value.trim()));
+            const rows = await request('/api/tickets');
+            const ahead = rows.filter(x => x.status === 'WAITING' && new Date(x.createdAt) < new Date(t.createdAt)).length;
+            $('trackResult').classList.remove('hidden');
+            $('trackResult').innerHTML = `<span class="eyebrow">${esc(t.tokenNumber)}</span>
+        <strong>${esc(t.status)}</strong>
+        <p>Customer: ${esc(t.customerName)}</p>
+        <p>${t.status === 'WAITING' ? 'People waiting before you: ' + ahead
+                : t.status === 'SERVING' ? 'It is your turn now.'
+                    : 'This token is ' + t.status.toLowerCase() + '.'}</p>`;
+        } catch (e) {
+            $('trackResult').classList.remove('hidden');
+            $('trackResult').textContent = e.message;
+        }
+    });
 }
+
+loadData();
+if ($('tickets')) setInterval(loadData, 10000);
