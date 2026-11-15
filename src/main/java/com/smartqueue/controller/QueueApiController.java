@@ -9,7 +9,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "https://your-site.netlify.app")
+@CrossOrigin(origins = "https://smartqueuecv.netlify.app")
 public class QueueApiController {
 
     private final QueueService service;
